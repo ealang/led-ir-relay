@@ -3,8 +3,8 @@
 // Switch from one thread to another.
 // @param thread_from pointer to current thread struct
 // @param thread_to pointer to other thread struct
-.global scheduler_switch_threads
-scheduler_switch_threads:
+.global _scheduler_switch_threads
+_scheduler_switch_threads:
 
 	// Push registers
 	push r0
@@ -43,8 +43,8 @@ scheduler_switch_threads:
 
 // Switch to given thread
 // @param thread pointer to Thread struct
-.global scheduler_resume_thread
-scheduler_resume_thread:
+.global _scheduler_resume_thread
+_scheduler_resume_thread:
 
 	// Restore stack pointer
 	mov xh, r25  // param1 h
