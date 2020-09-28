@@ -123,10 +123,52 @@ uint8_t scheduler_register_thread(Thread *thread, void (*start)())
 ////////////////////////////////////////
 // Timer
 
+#define MAX_TIMERS 5
+#define CLOCK_TICKS_PER_SEC 122
+
+typedef struct {
+	Pipe *pipes[MAX_TIMERS];
+	uint16_t countdown[MAX_TIMERS];
+} TimerManager;
+
+TimerManager *timer_manager_inst = 0;
+
+void timer_manager_init(TimerManager *inst)
+{
+	for (uint8_t i = 0; i < MAX_TIMERS; ++i)
+	{
+		inst->pipes[i] = 0;
+		inst->countdown[i] = 0;
+	}
+}
+
+void timer_manager_set_global_inst(TimerManager *inst)
+{
+	timer_manager_inst = inst;
+}
+
+uint8_t max(uint8_t a, uint8_t b)
+{
+	if (a > b)
+	{
+		return a;
+	}
+	return b;
+}
+
 void timer_request(Pipe *pipe, uint16_t ms)
 {
-	// TODO: timer stuff
-	pipe->ready_bool = 1;
+	uint8_t i;
+	for (i = 0; i < MAX_TIMERS; i++)
+	{
+		if (timer_manager_inst->pipes[i] == 0)
+		{
+			timer_manager_inst->countdown[i] = max(ms >> 3, 1);  // approx conversion to clock ticks
+			timer_manager_inst->pipes[i] = pipe;  // set this last in case ISR runs
+			break;
+		}
+	}
+	assert(i < MAX_TIMERS);
 }
 
 void await_sleep(uint16_t ms)
@@ -135,6 +177,29 @@ void await_sleep(uint16_t ms)
 	pipe_init(&pipe);
 	timer_request(&pipe, ms);
 	scheduler_await(&pipe);
+}
+
+void timer_manager_init_hardware()
+{
+	// Use Timer1 overflow interrupt for sleeps
+	TCCR1B |= (1 << CS10);  // Prescale of 1
+	TIMSK1 |= (1 << TOIE1);  // Interrupt on overflow (16bit)
+}
+
+ISR (TIMER1_OVF_vect)
+{
+	for (uint8_t i = 0; i < MAX_TIMERS; ++i)
+	{
+		if (timer_manager_inst->pipes[i] != 0)
+		{
+			uint16_t count = --timer_manager_inst->countdown[i];
+			if (count == 0)
+			{
+				timer_manager_inst->pipes[i]->ready_bool = 1;
+				timer_manager_inst->pipes[i] = 0;
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////
@@ -168,23 +233,34 @@ void scheduler_main()
 
 void task1_main()
 {
-	uint16_t x = 0;
+	DDRC |= 1;
+	PORTC &= ~1;
+
 	while (1)
 	{
-		x += 5;
-		printf("task1 %x", x);
-		await_sleep(500);
+		for (uint8_t i = 0; i < 4; i++)
+		{
+			PORTC ^= 1;
+			await_sleep(75);
+		}
+		await_sleep(1000);
 	}
 }
 
 void task2_main()
 {
+	// test max frequency counter
+	DDRC |= 2;
 	uint16_t x = 0;
 	while (1)
 	{
 		x += 1;
-		printf("task2 %x", x);
-		await_sleep(250);
+		if (x % 122 == 0)
+		{
+			PORTC ^= 2;
+			x = 0;
+		}
+		await_sleep(8);
 	}
 }
 
@@ -193,7 +269,11 @@ void task2_main()
 
 int main(void)
 {
-	sei();
+	timer_manager_init_hardware();
+
+	TimerManager timer_manager;
+	timer_manager_init(&timer_manager);
+	timer_manager_set_global_inst(&timer_manager);
 
 	Scheduler scheduler;
 	scheduler_init(&scheduler);
@@ -209,6 +289,8 @@ int main(void)
 
 	scheduler_register_thread(&thread_t1, task1_main);
 	scheduler_register_thread(&thread_t2, task2_main);
+
+	sei();
 
 	scheduler_resume_thread(sched_id);
 }
