@@ -227,6 +227,12 @@
     <Folder Include="src\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\input.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\input.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>

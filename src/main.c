@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "time.h"
+#include "input.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -8,6 +9,11 @@
 ISR (TIMER1_OVF_vect)
 {
     timer_manager_timer1_ovf_handler();
+}
+
+ISR(PCINT2_vect)
+{
+    input_manager_pin_change_handler();
 }
 
 static void task1_main(void)
@@ -28,24 +34,25 @@ static void task1_main(void)
 
 static void task2_main(void)
 {
-    // test max frequency counter
     DDRC |= 2;
-    uint16_t x = 0;
     while (1)
     {
-        x += 1;
-        if (x % 122 == 0)
-        {
-            PORTC ^= 2;
-            x = 0;
-        }
-        await_sleep(8);
+        Gesture press = await_input(Button0);
+        uint16_t time = (press == ShortPress) ? 200 : 1000;
+        PORTC |= 2;
+        await_sleep(time);
+        PORTC &= ~2;
     }
 }
 
 int main(void)
 {
+    input_manager_init_hardware();
     timer_manager_init_hardware();
+
+    InputManager input_manager;
+    input_manager_init(&input_manager);
+    input_manager_set_global_inst(&input_manager);
 
     TimerManager timer_manager;
     timer_manager_init(&timer_manager);

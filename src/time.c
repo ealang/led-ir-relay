@@ -4,6 +4,7 @@
 #include <avr/io.h>
 #include <assert.h>
 
+#define MAX_CLOCK_VALUE ((1 << 16) - 1)
 #define CLOCK_TICKS_PER_SEC 122
 
 static TimerManager *timer_manager_inst = 0;
@@ -26,6 +27,7 @@ void timer_manager_init_hardware(void)
 
 void timer_manager_init(TimerManager *inst)
 {
+    inst->system_time_ticks = 0;
     for (uint8_t i = 0; i < MAX_TIMERS; ++i)
     {
         inst->pipes[i] = 0;
@@ -63,6 +65,12 @@ void await_sleep(uint16_t ms)
 
 void timer_manager_timer1_ovf_handler(void)
 {
+    if (!timer_manager_inst)
+    {
+        return;
+    }
+
+    ++timer_manager_inst->system_time_ticks;
     for (uint8_t i = 0; i < MAX_TIMERS; ++i)
     {
         if (timer_manager_inst->pipes[i] != 0)
@@ -75,4 +83,13 @@ void timer_manager_timer1_ovf_handler(void)
             }
         }
     }
+}
+
+uint16_t system_time_ticks(void)
+{
+    if (timer_manager_inst)
+    {
+        return timer_manager_inst->system_time_ticks;
+    }
+    return 0;
 }

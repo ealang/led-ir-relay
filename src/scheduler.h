@@ -6,10 +6,16 @@
 #define MAX_THREADS 5
 #define THREAD_STACK_SIZE 0x100
 
+typedef struct
+{
+    uint8_t byte1;
+    uint8_t byte2;
+} Pair;
+
 typedef union
 {
-    uint8_t byte;
-    uint16_t word;
+    Pair as_pair;
+    uint16_t as_word;
 } PipeData;
 
 // Synchronization struct
