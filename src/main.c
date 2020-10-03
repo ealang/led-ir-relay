@@ -1,8 +1,8 @@
-#include "input.h"
-#include "ir.h"
-#include "light_sensor.h"
-#include "scheduler.h"
-#include "time.h"
+#include "os/input.h"
+#include "os/ir.h"
+#include "os/light_sensor.h"
+#include "os/scheduler.h"
+#include "os/time.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>

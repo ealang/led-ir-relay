@@ -225,45 +225,46 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="src\" />
+    <Folder Include="src\os" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\atomic.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\input.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\input.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ir.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ir.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\light_sensor.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\light_sensor.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\scheduler.c">
+    <Compile Include="src\os\atomic.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\scheduler.h">
+    <Compile Include="src\os\input.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\scheduler_.s">
+    <Compile Include="src\os\input.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\time.c">
+    <Compile Include="src\os\ir.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\time.h">
+    <Compile Include="src\os\ir.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\light_sensor.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\light_sensor.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\scheduler.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\scheduler.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\scheduler_.s">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\time.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\time.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
