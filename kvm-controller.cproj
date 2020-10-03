@@ -242,6 +242,12 @@
     <Compile Include="src\ir.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\light_sensor.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\light_sensor.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>

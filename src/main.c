@@ -1,7 +1,8 @@
-#include "scheduler.h"
-#include "time.h"
 #include "input.h"
 #include "ir.h"
+#include "light_sensor.h"
+#include "scheduler.h"
+#include "time.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -47,26 +48,60 @@ static void task1_main(void)
 
 static void task2_main(void)
 {
-    DDRC |= 2;
     while (1)
     {
         Gesture press = await_input(Button0);
-
-        PORTC |= 2;
-
         if (press == ShortPress)
         {
             ir_play(IRPort0, ir_buffer_contents(), ir_buffer_length());
+            ir_play(IRPort1, ir_buffer_contents(), ir_buffer_length());
         }
         else
         {
             ir_buffer_clear();
-            await_sleep(MS_TO_TICKS(1000));
         }
-
-        PORTC &= ~2;
     }
 }
+
+typedef struct {
+    uint8_t count;
+    uint8_t sum;
+    uint16_t history;
+} BinaryAverage;
+
+char compute_rolling_avg(char bit, BinaryAverage *inst);
+char compute_rolling_avg(char bit, BinaryAverage *inst)
+{
+    char oldest_bit = inst->history >> 15;
+    inst->sum += bit - oldest_bit;
+
+    inst->history = (inst->history << 1) | bit;
+    if (inst->count < 16)
+    {
+        ++inst->count;
+        // not enough history yet, return current
+        return bit;
+    }
+    return (inst->sum >= 8) ? 1 : 0;
+}
+
+static void task3_main(void)
+{
+    DDRC |= 2;
+
+    BinaryAverage avg = {0, 0, 0};
+    while(1)
+    {
+        char cur_sensor = read_max_light_sensor() == Sensor1 ? 0 : 1;
+        char avg_sensor = compute_rolling_avg(cur_sensor, &avg);
+
+        PORTC = (PORTC & ~2) | (avg_sensor << 1);
+
+        await_sleep(MS_TO_TICKS(100 / 16));
+    }
+}
+
+#include <stdio.h>
 
 int main(void)
 {
@@ -89,12 +124,14 @@ int main(void)
     Scheduler scheduler;
     scheduler_init(&scheduler);
 
-    Thread thread_t1, thread_t2;
+    Thread thread_t1, thread_t2, thread_t3;
     thread_init(&thread_t1, task1_main);
     thread_init(&thread_t2, task2_main);
+    thread_init(&thread_t3, task3_main);
 
     scheduler_register_thread(&scheduler, &thread_t1);
     scheduler_register_thread(&scheduler, &thread_t2);
+    scheduler_register_thread(&scheduler, &thread_t3);
 
     sei();
 
