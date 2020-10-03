@@ -3,10 +3,14 @@
 #include <assert.h>
 #include <string.h>
 
-#define FRAME_BACKUP_SIZE 21  // Bytes needed to preserve current stack frame
+#define FRAME_BACKUP_SIZE 19  // Bytes needed to preserve current stack frame
 #define THREAD_ID_SCHEDULER 0
 #define THREAD_ID_USER_START 1
 
+#define HIGH(x) ((uint16_t)(x) >> 8)
+#define LOW(x) ((uint16_t)(x) & 0xFF)
+
+extern void _thread_startup_wrapper(void *param);
 extern void _scheduler_resume_thread(Thread *to);
 extern void _scheduler_switch_threads(Thread *from, Thread *to);
 
@@ -23,7 +27,7 @@ static void scheduler_switch_threads(uint8_t thread_id)
 }
 
 // Thread main that will schedule other threads.
-static void scheduler_main(void)
+static void scheduler_main(void *param)
 {
     // Start all the threads
     for (uint8_t i = THREAD_ID_USER_START; i < MAX_THREADS; i++)
@@ -53,15 +57,25 @@ void pipe_init(Pipe *pipe)
     pipe->ready_bool = 0;
 }
 
-void thread_init(Thread *thread, void (*start)(void))
+void thread_init(Thread *thread, void (*start)(void*), void *param)
 {
+    const uint8_t startup_param_size = 6;  // storage for extra data pushed below
+
     // Init thread stack
     memset((void *)thread->stack, 0, THREAD_STACK_SIZE);
-    thread->sp = thread->stack + THREAD_STACK_SIZE - FRAME_BACKUP_SIZE - 1;
+    thread->sp = thread->stack + THREAD_STACK_SIZE - FRAME_BACKUP_SIZE - 1 - startup_param_size;
 
-    // Setup start address
-    thread->stack[THREAD_STACK_SIZE - 2] = (uint16_t)start >> 8;
-    thread->stack[THREAD_STACK_SIZE - 1] = (uint16_t)start & 0xFF;
+    // Thread wrapper addr
+    thread->stack[THREAD_STACK_SIZE - 6] = HIGH(_thread_startup_wrapper);
+    thread->stack[THREAD_STACK_SIZE - 5] = LOW(_thread_startup_wrapper);
+
+    // User thread param
+    thread->stack[THREAD_STACK_SIZE - 4] = HIGH(param);
+    thread->stack[THREAD_STACK_SIZE - 3] = LOW(param);
+
+    // User func
+    thread->stack[THREAD_STACK_SIZE - 2] = HIGH(start);
+    thread->stack[THREAD_STACK_SIZE - 1] = LOW(start);
 }
 
 void scheduler_init(Scheduler *scheduler)
@@ -71,7 +85,7 @@ void scheduler_init(Scheduler *scheduler)
         scheduler->threads[i] = 0;
         scheduler->pipes[i] = 0;
     }
-    thread_init(&scheduler->scheduler_thread, scheduler_main);
+    thread_init(&scheduler->scheduler_thread, scheduler_main, 0);
     uint8_t sched_id = scheduler_register_thread(scheduler, &scheduler->scheduler_thread);
     assert(THREAD_ID_SCHEDULER == sched_id);
 }

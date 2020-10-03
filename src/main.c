@@ -23,30 +23,27 @@ ISR(PCINT2_vect)
     input_manager_pin_change_handler();
 }
 
-static void task1_main(void)
+static void task1_main(void *param)
 {
+    uint8_t num_blinks = *((uint8_t*)param);
+
     DDRC |= 1;
     PORTC &= ~1;
 
     while (1)
     {
-        uint8_t len = ir_buffer_length();
-
-        PORTC |= 1;
-        if (len < IR_BUFFER_SIZE)
+        PORTC &= ~1;
+        for (uint8_t i = 0; i < num_blinks * 2; i++)
         {
-            for (uint8_t i = 0; i < 3; i++)
-            {
-                await_sleep(MS_TO_TICKS(70));
-                PORTC ^= 1;
-            }
+            await_sleep(MS_TO_TICKS(70));
+            PORTC ^= 1;
         }
 
         await_sleep(MS_TO_TICKS(1000));
     }
 }
 
-static void task2_main(void)
+static void task2_main(void *param)
 {
     while (1)
     {
@@ -85,7 +82,7 @@ char compute_rolling_avg(char bit, BinaryAverage *inst)
     return (inst->sum >= 8) ? 1 : 0;
 }
 
-static void task3_main(void)
+static void task3_main(void *param)
 {
     DDRC |= 2;
 
@@ -125,9 +122,11 @@ int main(void)
     scheduler_init(&scheduler);
 
     Thread thread_t1, thread_t2, thread_t3;
-    thread_init(&thread_t1, task1_main);
-    thread_init(&thread_t2, task2_main);
-    thread_init(&thread_t3, task3_main);
+
+    uint8_t num_blinks = 3;
+    thread_init(&thread_t1, task1_main, (void*)&num_blinks);
+    thread_init(&thread_t2, task2_main, 0);
+    thread_init(&thread_t3, task3_main, 0);
 
     scheduler_register_thread(&scheduler, &thread_t1);
     scheduler_register_thread(&scheduler, &thread_t2);

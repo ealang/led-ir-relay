@@ -39,7 +39,7 @@ typedef struct
 } Scheduler;
 
 void pipe_init(Pipe *pipe);
-void thread_init(Thread *thread, void (*start)(void));
+void thread_init(Thread *thread, void (*start)(void*), void *param);
 void scheduler_init(Scheduler *scheduler);
 
 // Register the given thread with the scheduler.
