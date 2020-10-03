@@ -1,8 +1,11 @@
 #include "os/input.h"
 #include "os/ir.h"
+#include "os/led.h"
 #include "os/light_sensor.h"
 #include "os/scheduler.h"
 #include "os/time.h"
+
+#include "app/led_anim.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -25,26 +28,12 @@ ISR(PCINT2_vect)
 
 static void task1_main(void *param)
 {
-    uint8_t num_blinks = *((uint8_t*)param);
+    const LedNumber my_led = Led0;
 
-    DDRC |= 1;
-    PORTC &= ~1;
+    LedOpCode blink1_seq[LED_ANIM_MAX_PROGRAM_LEN], blinkn_seq[LED_ANIM_MAX_PROGRAM_LEN];
+    led_anim_sequence_pulse_then_off(blink1_seq, 1, MS_TO_ANIM_TICKS(100));
+    led_anim_sequence_pulse_then_off(blinkn_seq, 3, MS_TO_ANIM_TICKS(100));
 
-    while (1)
-    {
-        PORTC &= ~1;
-        for (uint8_t i = 0; i < num_blinks * 2; i++)
-        {
-            await_sleep(MS_TO_TICKS(70));
-            PORTC ^= 1;
-        }
-
-        await_sleep(MS_TO_TICKS(1000));
-    }
-}
-
-static void task2_main(void *param)
-{
     while (1)
     {
         Gesture press = await_input(Button0);
@@ -52,10 +41,12 @@ static void task2_main(void *param)
         {
             ir_play(IRPort0, ir_buffer_contents(), ir_buffer_length());
             ir_play(IRPort1, ir_buffer_contents(), ir_buffer_length());
+            led_anim_play(my_led, blink1_seq, LED_ANIM_MAX_PROGRAM_LEN);
         }
         else
         {
             ir_buffer_clear();
+            led_anim_play(my_led, blinkn_seq, LED_ANIM_MAX_PROGRAM_LEN);
         }
     }
 }
@@ -82,29 +73,31 @@ char compute_rolling_avg(char bit, BinaryAverage *inst)
     return (inst->sum >= 8) ? 1 : 0;
 }
 
-static void task3_main(void *param)
+static void task2_main(void *param)
 {
-    DDRC |= 2;
+    const LedNumber my_led = Led1;
 
     BinaryAverage avg = {0, 0, 0};
     while(1)
     {
         char cur_sensor = read_max_light_sensor() == Sensor1 ? 0 : 1;
         char avg_sensor = compute_rolling_avg(cur_sensor, &avg);
-
-        PORTC = (PORTC & ~2) | (avg_sensor << 1);
+        led_set_state(my_led, avg_sensor);
 
         await_sleep(MS_TO_TICKS(100 / 16));
     }
 }
-
-#include <stdio.h>
 
 int main(void)
 {
     input_manager_init_hardware();
     timer_manager_init_hardware();
     ir_init_hardware();
+    led_init_hardware();
+
+    LedAnimManager led_anim;
+    led_anim_init(&led_anim);
+    led_anim_set_global_inst(&led_anim);
 
     InputManager input_manager;
     input_manager_init(&input_manager);
@@ -121,16 +114,20 @@ int main(void)
     Scheduler scheduler;
     scheduler_init(&scheduler);
 
-    Thread thread_t1, thread_t2, thread_t3;
+    Thread thread_led_anim;
+    thread_init(&thread_led_anim, led_anim_thread, (void*)&led_anim);
+    scheduler_register_thread(&scheduler, &thread_led_anim);
 
-    uint8_t num_blinks = 3;
-    thread_init(&thread_t1, task1_main, (void*)&num_blinks);
-    thread_init(&thread_t2, task2_main, 0);
-    thread_init(&thread_t3, task3_main, 0);
+    Thread t1, t2;
+    thread_init(&t1, task1_main, 0);
+    thread_init(&t2, task2_main, 0);
+    scheduler_register_thread(&scheduler, &t1);
+    scheduler_register_thread(&scheduler, &t2);
 
-    scheduler_register_thread(&scheduler, &thread_t1);
-    scheduler_register_thread(&scheduler, &thread_t2);
-    scheduler_register_thread(&scheduler, &thread_t3);
+    // testing
+    LedOpCode blink_seq[LED_ANIM_MAX_PROGRAM_LEN];
+    uint8_t blink_seq_len = led_anim_sequence_infinite_blink(blink_seq, MS_TO_ANIM_TICKS(1000));
+    led_anim_play(Led2, blink_seq, blink_seq_len);
 
     sei();
 

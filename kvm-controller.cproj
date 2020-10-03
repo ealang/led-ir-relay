@@ -225,9 +225,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="src\" />
+    <Folder Include="src\app" />
     <Folder Include="src\os" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\app\led_anim.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\app\led_anim.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\app\led_opcode.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\app\led_opcode.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>
@@ -244,6 +257,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\os\ir.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\led.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\led.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\os\light_sensor.c">
