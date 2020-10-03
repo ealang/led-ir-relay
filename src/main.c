@@ -124,9 +124,9 @@ int main(void)
     scheduler_register_thread(&scheduler, &t1);
     scheduler_register_thread(&scheduler, &t2);
 
-    // testing
+    // testing - fancy counter blink
     LedOpCode blink_seq[LED_ANIM_MAX_PROGRAM_LEN];
-    uint8_t blink_seq_len = led_anim_sequence_infinite_blink(blink_seq, MS_TO_ANIM_TICKS(1000));
+    uint8_t blink_seq_len = led_anim_sequence_infinite_pulse(blink_seq, 3, MS_TO_ANIM_TICKS(100), MS_TO_ANIM_TICKS(1000));
     led_anim_play(Led2, blink_seq, blink_seq_len);
 
     sei();

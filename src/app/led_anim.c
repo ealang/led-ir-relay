@@ -21,7 +21,7 @@ uint8_t led_anim_sequence_infinite_blink(LedOpCode *dest, uint8_t ticks_per_stat
 {
     const LedOpCode const *start = dest;
     *(dest++) = led_opcode_change_state(-1, ticks_per_state);
-    *(dest++) = led_opcode_jump(0, -1);
+    *(dest++) = led_opcode_jump(0, 0);
     return (uint8_t)(dest - start);
 }
 
@@ -30,8 +30,25 @@ uint8_t led_anim_sequence_pulse_then_off(LedOpCode *dest, uint8_t n_pulses, uint
     const LedOpCode const *start = dest;
     *(dest++) = led_opcode_change_state(1, ticks_per_state);
     *(dest++) = led_opcode_change_state(0, ticks_per_state);
-    *(dest++) = led_opcode_jump(0, n_pulses - 1);
+    if (n_pulses > 1)
+    {
+        *(dest++) = led_opcode_jump(0, n_pulses - 1);
+    }
     *(dest++) = led_opcode_halt();
+    return (uint8_t)(dest - start);
+}
+
+uint8_t led_anim_sequence_infinite_pulse(LedOpCode *dest, uint8_t n_pulses, uint8_t pulse_ticks, uint8_t pause_ticks)
+{
+    const LedOpCode const *start = dest;
+    *(dest++) = led_opcode_change_state(1, pulse_ticks);
+    *(dest++) = led_opcode_change_state(0, pulse_ticks);
+    if (n_pulses > 1)
+    {
+        *(dest++) = led_opcode_jump(0, n_pulses - 1);
+    }
+    *(dest++) = led_opcode_change_state(0, pause_ticks);
+    *(dest++) = led_opcode_jump(0, 0);
     return (uint8_t)(dest - start);
 }
 
@@ -76,18 +93,20 @@ static char single_step_animation(LedAnimData *data)
     }
     if (opcode->type == LedOpCodeJump)
     {
-        if (opcode->data.jump.repeat_count == 0)
+        if (opcode->data.jump.exec_count == 0 || opcode->data.jump.remaining_exec > 0)
         {
-            ++data->pc;
-        }
-        else
-        {
-            if (opcode->data.jump.repeat_count > 0)
+            if (opcode->data.jump.remaining_exec)
             {
-                --opcode->data.jump.repeat_count;
+                --opcode->data.jump.remaining_exec;
             }
             data->pc = opcode->data.jump.location;
         }
+        else
+        {
+            opcode->data.jump.remaining_exec = opcode->data.jump.exec_count;
+            ++data->pc;
+        }
+
         return single_step_animation(data);
     }
     assert(0);

@@ -11,8 +11,9 @@ typedef struct
 
 typedef struct
 {
-    uint8_t location;
-    char repeat_count;
+    uint8_t location : 8;
+    uint8_t exec_count : 4;
+    uint8_t remaining_exec : 4;
 } LedOpCodeDataJump;
 
 typedef enum { LedOpCodeChangeState, LedOpCodeJump, LedOpCodeHalt } LedOpCodeType;
@@ -33,8 +34,8 @@ LedOpCode led_opcode_change_state(char led_state, uint8_t ticks);
 
 // Make an opcode to jump to another location.
 // @param location Address/instruction number to jump to
-// @param ticks How many times to perform the jump. -1 for infinite.
-LedOpCode led_opcode_jump(uint8_t location, char repeat_count);
+// @param exec_count How many times to perform the jump. 0 for infinite.
+LedOpCode led_opcode_jump(uint8_t location, uint8_t exec_count);
 
 // Make an opcode to halt the program.
 LedOpCode led_opcode_halt(void);

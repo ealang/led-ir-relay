@@ -11,12 +11,12 @@ LedOpCode led_opcode_change_state(char led_state, uint8_t ticks)
     return code;
 }
 
-LedOpCode led_opcode_jump(uint8_t location, char repeat_count)
+LedOpCode led_opcode_jump(uint8_t location, uint8_t exec_count)
 {
     LedOpCode code = {
         .type = LedOpCodeJump,
         .data = {
-            .jump = { location, repeat_count }
+            .jump = { location, exec_count, exec_count }
         }
     };
     return code;
