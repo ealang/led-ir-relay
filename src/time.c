@@ -1,4 +1,6 @@
 #include "time.h"
+
+#include "atomic.h"
 #include "scheduler.h"
 
 #include <avr/io.h>
@@ -35,8 +37,10 @@ static void timer_request(Pipe *pipe, uint32_t ticks)
     {
         if (timer_manager_inst->pipes[i] == 0)
         {
-            timer_manager_inst->countdown[i] = ticks;
-            timer_manager_inst->pipes[i] = pipe;  // set this last in case ISR runs
+            ATOMIC({
+                timer_manager_inst->countdown[i] = ticks;
+                timer_manager_inst->pipes[i] = pipe;
+            });
             break;
         }
     }

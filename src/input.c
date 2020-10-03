@@ -1,4 +1,6 @@
 #include "input.h"
+
+#include "atomic.h"
 #include "scheduler.h"
 #include "time.h"
 
@@ -123,8 +125,11 @@ Gesture await_input(ButtonNumber button_num)
 
     uint8_t slot = get_free_subscriber_slot(global_inst);
     assert (slot != -1);
-    global_inst->subscriber_button_num[slot] = button_num;
-    global_inst->subscriber_pipe[slot] = &pipe;  // Do this last in case ISR runs
+
+    ATOMIC({
+        global_inst->subscriber_button_num[slot] = button_num;
+        global_inst->subscriber_pipe[slot] = &pipe;
+    });
 
     scheduler_await(&pipe);
 

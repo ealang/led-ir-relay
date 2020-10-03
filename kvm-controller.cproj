@@ -227,6 +227,9 @@
     <Folder Include="src\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\atomic.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\input.c">
       <SubType>compile</SubType>
     </Compile>
