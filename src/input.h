@@ -12,7 +12,7 @@ typedef struct
 {
     Pipe *subscriber_pipe[MAX_INPUT_SUBSCRIBERS];
     uint8_t subscriber_button_num[MAX_INPUT_SUBSCRIBERS];
-    uint16_t button_down_time[NUM_BUTTONS];
+    uint32_t button_down_time[NUM_BUTTONS];
     uint8_t prev_state;
 } InputManager;
 

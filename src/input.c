@@ -9,9 +9,9 @@
 #define INPUT_PIN_UP_VAL 1
 #define INPUT_PIN_MASK 0x3
 
-#define DEBOUNCE_TIME_TICKS ((int)(0.01 / SEC_PER_CLOCK_TICK))
-#define SHORT_PRESS_TICKS ((int)(0.7 / SEC_PER_CLOCK_TICK))
-#define LONG_PRESS_TICKS ((int)(10 / SEC_PER_CLOCK_TICK))
+#define DEBOUNCE_TIME_TICKS MS_TO_TICKS(10)
+#define SHORT_PRESS_TICKS MS_TO_TICKS(700)
+#define LONG_PRESS_TICKS MS_TO_TICKS(10000)
 
 static InputManager *global_inst = 0;
 
@@ -27,17 +27,6 @@ void input_manager_init_hardware(void)
 static uint8_t input_manager_read_button_states(void)
 {
     return PIND & INPUT_PIN_MASK;
-}
-
-static uint16_t clock_tick_delta(uint16_t time1, uint16_t time2)
-{
-    if (time2 >= time1)
-    {
-        return time2 - time1;
-    }
-
-    // Wraped around
-    return ((uint16_t)-1) - time1 + time2 + 1;
 }
 
 // Given a recognized button press, notify any subscribers.
@@ -67,7 +56,7 @@ void input_manager_pin_change_handler(void)
     uint8_t change_mask = button_states ^ global_inst->prev_state;
     global_inst->prev_state = button_states;
 
-    uint16_t cur_time = system_time_ticks();
+    uint32_t cur_time = system_time_ticks();
     for (uint8_t button_num = 0; button_num < NUM_BUTTONS; ++button_num)
     {
         if (change_mask & 1)
@@ -79,8 +68,8 @@ void input_manager_pin_change_handler(void)
             }
             else
             {
-                uint16_t prev_time = global_inst->button_down_time[button_num];
-                uint16_t passed_time = clock_tick_delta(prev_time, cur_time);
+                uint32_t prev_time = global_inst->button_down_time[button_num];
+                uint32_t passed_time = cur_time - prev_time;
                 if (passed_time >= DEBOUNCE_TIME_TICKS)
                 {
                     if (passed_time <= SHORT_PRESS_TICKS)

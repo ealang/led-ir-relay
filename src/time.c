@@ -4,25 +4,13 @@
 #include <avr/io.h>
 #include <assert.h>
 
-#define MAX_CLOCK_VALUE ((1 << 16) - 1)
-#define CLOCK_TICKS_PER_SEC 122
-
 static TimerManager *timer_manager_inst = 0;
-
-static uint8_t max(uint8_t a, uint8_t b)
-{
-    if (a > b)
-    {
-        return a;
-    }
-    return b;
-}
 
 void timer_manager_init_hardware(void)
 {
-    // Use Timer1 overflow interrupt for sleeps
-    TCCR1B |= (1 << CS10);  // Prescale of 1
-    TIMSK1 |= (1 << TOIE1);  // Interrupt on overflow (16bit)
+    // Use Timer0 overflow interrupt for system ticks
+    TCCR0B |= (1 << CS01);  // Prescale of 8
+    TIMSK0 |= (1 << TOIE0);  // Interrupt on overflow (16bit)
 }
 
 void timer_manager_init(TimerManager *inst)
@@ -40,14 +28,14 @@ void timer_manager_set_global_inst(TimerManager *inst)
     timer_manager_inst = inst;
 }
 
-static void timer_request(Pipe *pipe, uint16_t ms)
+static void timer_request(Pipe *pipe, uint32_t ticks)
 {
     uint8_t i;
     for (i = 0; i < MAX_TIMERS; i++)
     {
         if (timer_manager_inst->pipes[i] == 0)
         {
-            timer_manager_inst->countdown[i] = max(ms >> 3, 1);  // approx conversion to clock ticks
+            timer_manager_inst->countdown[i] = ticks;
             timer_manager_inst->pipes[i] = pipe;  // set this last in case ISR runs
             break;
         }
@@ -55,15 +43,15 @@ static void timer_request(Pipe *pipe, uint16_t ms)
     assert(i < MAX_TIMERS);
 }
 
-void await_sleep(uint16_t ms)
+void await_sleep(uint32_t ticks)
 {
     Pipe pipe;
     pipe_init(&pipe);
-    timer_request(&pipe, ms);
+    timer_request(&pipe, ticks);
     scheduler_await(&pipe);
 }
 
-void timer_manager_timer1_ovf_handler(void)
+void timer_manager_timer0_ovf_handler(void)
 {
     if (!timer_manager_inst)
     {
@@ -85,7 +73,7 @@ void timer_manager_timer1_ovf_handler(void)
     }
 }
 
-uint16_t system_time_ticks(void)
+uint32_t system_time_ticks(void)
 {
     if (timer_manager_inst)
     {
