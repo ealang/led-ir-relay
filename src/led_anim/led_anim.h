@@ -47,19 +47,4 @@ uint8_t led_anim_sequence_steady(LedOpCode *dest, char value);
 // @return length of sequence
 uint8_t led_anim_sequence_infinite_blink(LedOpCode *dest, uint8_t ticks_per_state);
 
-// Pulse n times, then turn off.
-// @param dest Array to write opcodes to
-// @param n_pulses number of pulses
-// @param ticks_per_state Determine pulse rate
-// @return length of sequence
-uint8_t led_anim_sequence_pulse_then_off(LedOpCode *dest, uint8_t n_pulses, uint8_t ticks_per_state);
-
-// Pulse n times, pause, and repeat infinitely.
-// @param dest Array to write opcodes to
-// @param n_pulses number of pulses
-// @param pulse_ticks Determine pulse rate
-// @param pause_ticks Determine pause time
-// @return length of sequence
-uint8_t led_anim_sequence_infinite_pulse(LedOpCode *dest, uint8_t n_pulses, uint8_t pulse_ticks, uint8_t pause_ticks);
-
 #endif

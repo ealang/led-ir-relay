@@ -236,6 +236,12 @@
     <Compile Include="src\app\bin_rolling_avg.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\app\ir_bank.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\app\ir_bank.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\app\kvm_switch_task.c">
       <SubType>compile</SubType>
     </Compile>

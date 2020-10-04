@@ -25,33 +25,6 @@ uint8_t led_anim_sequence_infinite_blink(LedOpCode *dest, uint8_t ticks_per_stat
     return (uint8_t)(dest - start);
 }
 
-uint8_t led_anim_sequence_pulse_then_off(LedOpCode *dest, uint8_t n_pulses, uint8_t ticks_per_state)
-{
-    const LedOpCode const *start = dest;
-    *(dest++) = led_opcode_change_state(1, ticks_per_state);
-    *(dest++) = led_opcode_change_state(0, ticks_per_state);
-    if (n_pulses > 1)
-    {
-        *(dest++) = led_opcode_jump(0, n_pulses - 1);
-    }
-    *(dest++) = led_opcode_halt();
-    return (uint8_t)(dest - start);
-}
-
-uint8_t led_anim_sequence_infinite_pulse(LedOpCode *dest, uint8_t n_pulses, uint8_t pulse_ticks, uint8_t pause_ticks)
-{
-    const LedOpCode const *start = dest;
-    *(dest++) = led_opcode_change_state(1, pulse_ticks);
-    *(dest++) = led_opcode_change_state(0, pulse_ticks);
-    if (n_pulses > 1)
-    {
-        *(dest++) = led_opcode_jump(0, n_pulses - 1);
-    }
-    *(dest++) = led_opcode_change_state(0, pause_ticks);
-    *(dest++) = led_opcode_jump(0, 0);
-    return (uint8_t)(dest - start);
-}
-
 void led_anim_init(LedAnimManager *inst)
 {
     for (uint8_t i = 0; i < LED_ANIM_NUM_LEDS; i++)

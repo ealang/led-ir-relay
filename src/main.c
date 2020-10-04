@@ -59,7 +59,7 @@ int main(void)
     // Switch params
     KvmSwitchTaskCtrl kvm_switch_task_ctrl = {
         // default to auto-select port
-        .port_selection = KVM_SWITCH_PORT_AUTO
+        .port_selection = KVM_PORT_SELECTION_AUTO
     };
 
     Thread t1, t2;

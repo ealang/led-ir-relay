@@ -16,6 +16,9 @@ static IRBuffer *global_inst = 0;
 #define IR_PLAY_PIN_1_NUM 3
 #define IR_PLAY_PIN_1_MASK (1 << IR_PLAY_PIN_1_NUM)
 
+// Put a reasonable time limit on how long playback sequences can be
+#define IR_PLAY_MAX_TICKS MS_TO_TICKS(500)
+
 void ir_buffer_init(IRBuffer *ir_buffer)
 {
     ir_buffer->length = 0;
@@ -100,14 +103,23 @@ static inline void ir_set_bit(IRPort port, uint8_t val)
     PORTB = (PORTB & ~mask) | (val << num);
 }
 
-void ir_play(IRPort port, uint16_t *buffer, uint8_t length)
+void ir_play(IRPort port, uint16_t *buffer, uint8_t length, uint16_t (*read_word)(const uint16_t*))
 {
-    const uint32_t final_ticks = MS_TO_TICKS(100);
+    const uint16_t final_ticks = MS_TO_TICKS(10);
+    uint32_t total_ticks = 0;
 
     uint8_t val = 1;
     for (uint8_t i = 0; i < length; i++)
     {
-        uint32_t ticks = i == length - 1 ? final_ticks : buffer[i + 1];
+        uint16_t ticks = (i == length - 1) ?
+            final_ticks :
+            read_word(buffer + i + 1);
+        total_ticks += ticks;
+        if (total_ticks > IR_PLAY_MAX_TICKS)
+        {
+            break;
+        }
+
         ir_set_bit(port, val);
         await_sleep(ticks);
         val ^= 1;

@@ -26,6 +26,6 @@ void ir_receive_handler(void);
 typedef enum { IRPort0 = 0, IRPort1 = 1 } IRPort;
 
 // Playback IR recording on the given port
-void ir_play(IRPort port, uint16_t *buffer, uint8_t length);
+void ir_play(IRPort port, uint16_t *buffer, uint8_t length, uint16_t (*read_word)(const uint16_t*));
 
 #endif
