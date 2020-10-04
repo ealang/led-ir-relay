@@ -6,5 +6,5 @@
 
 ActiveSensor read_max_light_sensor(void)
 {
-    return ACSR & READ_MASK ? Sensor1 : Sensor2;
+    return ACSR & READ_MASK ? Sensor0 : Sensor1;
 }

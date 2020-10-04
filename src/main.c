@@ -4,12 +4,11 @@
 #include "os/scheduler.h"
 #include "os/time.h"
 #include "led_anim/led_anim.h"
+#include "app/kvm_switch_task.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdint.h>
 
-extern void kvm_switch_task(void *param);
 extern void ui_task(void *param);
 
 ISR (TIMER0_OVF_vect)
@@ -57,9 +56,15 @@ int main(void)
     thread_init(&thread_led_anim, led_anim_thread, (void*)&led_anim);
     scheduler_register_thread(&scheduler, &thread_led_anim);
 
+    // Switch params
+    KvmSwitchTaskCtrl kvm_switch_task_ctrl = {
+        // default to auto-select port
+        .port_selection = KVM_SWITCH_PORT_AUTO
+    };
+
     Thread t1, t2;
-    thread_init(&t1, ui_task, 0);
-    thread_init(&t2, kvm_switch_task, 0);
+    thread_init(&t1, ui_task, (void*)&kvm_switch_task_ctrl);
+    thread_init(&t2, kvm_switch_task, (void*)&kvm_switch_task_ctrl);
     scheduler_register_thread(&scheduler, &t1);
     scheduler_register_thread(&scheduler, &t2);
 

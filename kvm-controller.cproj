@@ -239,6 +239,9 @@
     <Compile Include="src\app\kvm_switch_task.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\app\kvm_switch_task.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\app\ui_task.c">
       <SubType>compile</SubType>
     </Compile>
