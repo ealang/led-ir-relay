@@ -3,12 +3,14 @@
 
 #include <stdint.h>
 
+// Able to hold LED state for a period of time.
 typedef struct
 {
     char led_state;
     uint8_t duration;
 } LedOpCodeDataChangeState;
 
+// Rudimentary branching/jump instruction.
 typedef struct
 {
     uint8_t location : 8;

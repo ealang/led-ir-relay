@@ -226,19 +226,32 @@
   <ItemGroup>
     <Folder Include="src\" />
     <Folder Include="src\app" />
+    <Folder Include="src\led_anim" />
     <Folder Include="src\os" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\app\led_anim.c">
+    <Compile Include="src\app\bin_rolling_avg.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\app\led_anim.h">
+    <Compile Include="src\app\bin_rolling_avg.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\app\led_opcode.c">
+    <Compile Include="src\app\kvm_switch_task.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\app\led_opcode.h">
+    <Compile Include="src\app\ui_task.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\led_anim\led_anim.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\led_anim\led_anim.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\led_anim\led_opcode.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\led_anim\led_opcode.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\main.c">

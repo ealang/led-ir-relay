@@ -86,8 +86,7 @@ void scheduler_init(Scheduler *scheduler)
         scheduler->pipes[i] = 0;
     }
     thread_init(&scheduler->scheduler_thread, scheduler_main, 0);
-    uint8_t sched_id = scheduler_register_thread(scheduler, &scheduler->scheduler_thread);
-    assert(THREAD_ID_SCHEDULER == sched_id);
+    scheduler_register_thread(scheduler, &scheduler->scheduler_thread);
 }
 
 uint8_t scheduler_register_thread(Scheduler *scheduler, Thread *thread)
