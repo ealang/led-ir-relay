@@ -230,6 +230,9 @@
     <Folder Include="src\os" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\app\active_kvm_port_poller_task.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\app\bin_rolling_avg.c">
       <SubType>compile</SubType>
     </Compile>
@@ -242,10 +245,10 @@
     <Compile Include="src\app\ir_bank.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\app\kvm_switch_task.c">
+    <Compile Include="src\app\switch_driver.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\app\kvm_switch_task.h">
+    <Compile Include="src\app\switch_driver.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\app\ui_task.c">

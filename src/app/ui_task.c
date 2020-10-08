@@ -1,4 +1,4 @@
-#include "kvm_switch_task.h"
+#include "switch_driver.h"
 #include "ir_bank.h"
 
 #include "led_anim/led_anim.h"
@@ -33,7 +33,7 @@ static uint8_t led_anim_sequence_infinite_pulse(LedOpCode *dest, uint8_t n_pulse
 }
 
 // UI to capture IR for a single bank
-static void ui_task__ir_capture__bank(uint8_t bank_num)
+static void ir_capture_menu__record_menu(uint8_t bank_num)
 {
     uint8_t anim_length;
     LedOpCode anim[LED_ANIM_MAX_PROGRAM_LEN];
@@ -73,7 +73,7 @@ static void ui_task__ir_capture__bank(uint8_t bank_num)
 }
 
 // UI to select bank and capture IR
-static void ui_task__ir_capture(void)
+static void ir_capture_menu(void)
 {
     LedOpCode anim_pulse[LED_ANIM_MAX_PROGRAM_LEN];
 
@@ -94,34 +94,36 @@ static void ui_task__ir_capture(void)
         else
         {
             // Go into sub-menu for bank specific capture
-            ui_task__ir_capture__bank(cur_bank);
+            ir_capture_menu__record_menu(cur_bank);
             break;
         }
     }
 }
 
-// Cycle through ports/modes
-static char next_port_selection(char cur_port)
+static void set_switch_state(SwitchDriverState *switch_driver_state, uint8_t mode_index)
 {
-    if (cur_port == 0)
+    if (mode_index == 0)
     {
-        return 1;
-    }
-    else if (cur_port == 1)
-    {
-        return KVM_PORT_SELECTION_AUTO;
+        switch_driver_set_mode_auto(switch_driver_state);
     }
     else
     {
-        return 0;
+        // Get currently active port and toggle to opposite manual port
+        uint8_t active_port = swtich_driver_get_active_port(switch_driver_state);
+        uint8_t next_port = (active_port + 1) % 2;
+        switch_driver_set_mode_force(switch_driver_state, next_port);
     }
 }
 
 void ui_task(void *param);
 void ui_task(void *param)
 {
-    KvmSwitchTaskCtrl *ctrl = (KvmSwitchTaskCtrl*)param;
+    SwitchDriverState *switch_driver_state = (SwitchDriverState*)param;
 
+    uint8_t mode_index = 0;  // Used to cycle through auto select, and force port 1, 2
+    set_switch_state(switch_driver_state, mode_index);
+
+    // Initialize led sequence
     LedOpCode anim_steady[LED_ANIM_MAX_PROGRAM_LEN];
     uint8_t anim_length = led_anim_sequence_steady(anim_steady, 1);
 
@@ -132,13 +134,12 @@ void ui_task(void *param)
         Gesture press = await_input(Button0);
         if (press == ShortPress)
         {
-            // Signal kvm switch thread to change modes
-            ctrl->port_selection = next_port_selection(ctrl->port_selection);
+            mode_index = (mode_index + 1) % 3;
+            set_switch_state(switch_driver_state, mode_index);
         }
         else
         {
-            // Go into IR capture sub-menu
-            ui_task__ir_capture();
+            ir_capture_menu();
         }
     }
 }

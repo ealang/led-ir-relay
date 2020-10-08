@@ -1,15 +1,19 @@
+#include "led_anim/led_anim.h"
+#include "app/switch_driver.h"
+
 #include "os/input.h"
 #include "os/ir.h"
 #include "os/led.h"
+#include "os/mutex.h"
 #include "os/scheduler.h"
 #include "os/time.h"
-#include "led_anim/led_anim.h"
-#include "app/kvm_switch_task.h"
+
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
 extern void ui_task(void *param);
+extern void active_kvm_port_poller_task(void *param);
 
 ISR (TIMER0_OVF_vect)
 {
@@ -56,15 +60,15 @@ int main(void)
     thread_init(&thread_led_anim, led_anim_thread, (void*)&led_anim);
     scheduler_register_thread(&scheduler, &thread_led_anim);
 
-    // Switch params
-    KvmSwitchTaskCtrl kvm_switch_task_ctrl = {
-        // default to auto-select port
-        .port_selection = KVM_PORT_SELECTION_AUTO
-    };
+    // Switch driver state
+    Mutex switch_mutex;
+    SwitchDriverState switch_driver_state;
+    mutex_init(&switch_mutex);
+    switch_driver_state_init(&switch_driver_state, &switch_mutex);
 
     Thread t1, t2;
-    thread_init(&t1, ui_task, (void*)&kvm_switch_task_ctrl);
-    thread_init(&t2, kvm_switch_task, (void*)&kvm_switch_task_ctrl);
+    thread_init(&t1, ui_task, (void*)&switch_driver_state);
+    thread_init(&t2, active_kvm_port_poller_task, (void*)&switch_driver_state);
     scheduler_register_thread(&scheduler, &t1);
     scheduler_register_thread(&scheduler, &t2);
 
