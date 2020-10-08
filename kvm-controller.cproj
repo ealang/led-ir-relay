@@ -293,6 +293,12 @@
     <Compile Include="src\os\light_sensor.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\os\mutex.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\os\mutex.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\os\scheduler.c">
       <SubType>compile</SubType>
     </Compile>
