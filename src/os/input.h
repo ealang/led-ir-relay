@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define MAX_INPUT_SUBSCRIBERS 5
-#define NUM_BUTTONS 2
+#define MAX_INPUT_SUBSCRIBERS 1
+#define NUM_BUTTONS 1
 
 typedef struct Pipe Pipe;
 
@@ -22,7 +22,7 @@ void input_manager_init(InputManager *inst);
 void input_manager_set_global_inst(InputManager *inst);
 
 typedef enum {ShortPress = 0, LongPress = 1} Gesture;
-typedef enum {Button0 = 0, Button1 = 1} ButtonNumber;
+typedef enum {Button0 = 0} ButtonNumber;
 
 // Block waiting for input. Thread aware.
 Gesture await_input(ButtonNumber button_num);
