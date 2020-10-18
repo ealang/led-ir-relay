@@ -67,6 +67,6 @@ Root menu:
 
 ## Compatibility
 
-I don't suppose there is much standardization in the area of 3.5 mm IR ports, but in theory this can support a range of devices. IR capture timing resolution is roughly 0.25 ms.
+A potential future modification to improve compatibility would be to communicate using IR (instead of demodulated IR).
 
 I am using two of [these HDMI switches](https://www.newegg.com/p/2W4-00B9-00002). 
