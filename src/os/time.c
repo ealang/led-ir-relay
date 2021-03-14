@@ -12,7 +12,7 @@ void timer_manager_init_hardware(void)
 {
     // Use Timer0 overflow interrupt for system ticks
     TCCR0B |= (1 << CS01);  // Prescale of 8
-    TIMSK0 |= (1 << TOIE0);  // Interrupt on overflow (16bit)
+    TIMSK0 |= (1 << TOIE0);  // Interrupt on overflow (8bit)
 }
 
 void timer_manager_init(TimerManager *inst)
