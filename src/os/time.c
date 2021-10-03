@@ -85,3 +85,9 @@ uint32_t system_time_ticks(void)
     }
     return 0;
 }
+
+void blocking_sleep(uint8_t ticks)
+{
+    uint8_t start_time = TCNT0;
+    while ((uint8_t)(TCNT0 - start_time) < ticks);
+}

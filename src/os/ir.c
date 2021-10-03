@@ -19,6 +19,9 @@ static IRBuffer *global_inst = 0;
 // Put a reasonable time limit on how long playback sequences can be
 #define IR_PLAY_MAX_TICKS MS_TO_TICKS(500)
 
+#define IR_CARRIER_HZ 38000
+#define IR_SLEEP_TICKS MS_TO_BLOCKING_SLEEP_TICKS(1000. / (2 * IR_CARRIER_HZ))
+
 void ir_buffer_init(IRBuffer *ir_buffer)
 {
     ir_buffer->length = 0;
@@ -120,8 +123,17 @@ void ir_play(IRPort port, uint16_t *buffer, uint8_t length, uint16_t (*read_word
             break;
         }
 
-        ir_set_bit(port, val);
-        await_sleep(ticks);
+        if (val == 0) {
+            await_sleep(ticks);
+        } else {
+            uint32_t start_time = system_time_ticks();
+            while (system_time_ticks() - start_time < ticks) {
+                ir_set_bit(port, 1);
+                blocking_sleep(IR_SLEEP_TICKS);
+                ir_set_bit(port, 0);
+                blocking_sleep(IR_SLEEP_TICKS);
+            }
+        }
         val ^= 1;
     }
     ir_set_bit(port, 0);

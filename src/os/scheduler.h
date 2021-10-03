@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define MAX_THREADS 5
-#define THREAD_STACK_SIZE 0x100
+#define THREAD_STACK_SIZE 0x110
 
 typedef struct
 {

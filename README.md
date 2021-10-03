@@ -1,31 +1,34 @@
-# kvm-switch-controller
+# led-ir-relay
 
 ## Overview
 
-This repo contains plans for a somewhat generic device that keeps multiple video switches in sync with a master switch.
+This repo contains plans for a device that replays pre-captured IR sequences depending on which of 2 light sensors is receiving more light.
 
-The controlled video switches must be IR controllable (with a 3.5 mm IR receiver port). The device uses light sensors to monitor the active port on the master switch, and then plays back pre-captured fake "IR" signals to the controlled switches.
+I am using this to keep two separate HDMI switches in sync with a KVM switch. I.e. monitor the LEDs on the KVM switch and replay IR to the HDMI switches.
 
-I am using this to optimize a dual-monitor Mac + PC KVM setup (multi-port KVM options are limited and no DisplayPort chaining support on Mac).
+## Source Code Notes
 
-## Source Code Note
+The code is for an ATmega328P (8-bit AVR microcontroller). Compile with avr-gcc (see Makefile) or AVR Studio.
 
-The code is for an ATmega328P (8-bit AVR microcontroller). As an experiment I implemented a basic cooperative thread scheduler, with a few thread-aware building blocks (mutexes, time, input).
-
-Atmel Studio is required to build.
+The control flow is unusual. For the sake of novelty, I implemented a basic cooperative thread scheduler, with a few thread-aware apis (mutexes, timers, input).
 
 ```
 # Set to 8Mhz
 avrdude -c usbtiny -p atmega328p -U lfuse:w:0xE2:m
 # Flash & load eeprom backup
 avrdude -c usbtiny -p atmega328p -U flash:w:kvm-controller.hex -U eeprom:w:eeprom.hex
+
+# Preserve EEPROM during chip erase (optional):
+avrdude -c usbtiny -p atmega328p -U hfuse:w:0xD1:m
+# 5V brown-out detection (optional):
+avrdude -c usbtiny -p atmega328p -U efuse:w:0xFB:m
 ```
 
 ## Schematic
 
 ```
-[PC0] -- [1kΩ] -- [Port 1 LED]
-[PC1] -- [1kΩ] -- [Port 2 LED]
+[PC0] -- [1kΩ] -- [Port 1 Status LED]
+[PC1] -- [1kΩ] -- [Port 2 Status LED]
 [PC2] -- [1kΩ] -- [Status LED]
 [PB1] -- [1kΩ] -- [IR in mirror LED]
 
@@ -35,21 +38,18 @@ avrdude -c usbtiny -p atmega328p -U flash:w:kvm-controller.hex -U eeprom:w:eepro
 [PB0] -- [IR Out]   [1uF]
          [IR Gnd] ----+--- Ground
 
-                    [NPN C] --- [1kΩ] -- [Device 1 Supply] 
-  [PB2] -- [1kΩ] -- [NPN B]   `--------- [Device 1 Sensor]
-Port 1 out          [NPN E] -- Ground
+  [PB2] -- [1kΩ] -- [Port 1 IR LED Out]
+  [PB3] -- [1kΩ] -- [Port 2 IR LED Out]
 
-                    [NPN C] --- [1kΩ] -- [Device 2 Supply] 
-  [PB3] -- [1kΩ] -- [NPN B]   `--------- [Device 2 Sensor]
-Port 2 out          [NPN E] -- Ground
+[PD6/AIN0] -- [Sensor 1 in]
+[PD7/AIN1] -- [Sensor 2 in]
 
-[PD6/AIN0] -- [Sensor 1]
-[PD7/AIN1] -- [Sensor 2]
-
-NPN - 2N3904
-IR Receiver - TSOP38238
-Microcontroller - ATmega328P
 ```
+
+Specific parts used:
+- IR Receiver- TSOP38238
+- Microcontroller- ATmega328P
+- 2x [LilyPad light sensor](https://www.sparkfun.com/products/14629)
 
 ## UI Reference
 
@@ -64,9 +64,3 @@ Root menu:
         - Long press to save
             - Rapid blink means error saving (0 length or overflow)
             - Status led temporary off means success saving
-
-## Compatibility
-
-A potential future modification to improve compatibility would be to communicate using IR (instead of demodulated IR).
-
-I am using two of [these HDMI switches](https://www.newegg.com/p/2W4-00B9-00002). 
