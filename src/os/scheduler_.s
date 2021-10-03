@@ -1,30 +1,30 @@
-//.include "m328pdef.inc"
+;.include "m328pdef.inc"
 
-// Wrapper function that injects the param into the thread.
+; Wrapper function that injects the param into the thread.
 .global _thread_startup_wrapper
 _thread_startup_wrapper:
 
-    // Retrieve threads starting param
+    ; Retrieve threads starting param
     pop r25
     pop r24
 
-    // Retrieve thread func addr
+    ; Retrieve thread func addr
     pop zh
     pop zl
 
-    // Call func
+    ; Call func
     icall
 
-    // Not supporting thread termination. For now restart the entire program.
+    ; Not supporting thread termination. For now restart the entire program.
     jmp 0
 
-// Switch from one thread to another.
-// @param thread_from pointer to current thread struct
-// @param thread_to pointer to other thread struct
+; Switch from one thread to another.
+; @param thread_from pointer to current thread struct
+; @param thread_to pointer to other thread struct
 .global _scheduler_switch_threads
 _scheduler_switch_threads:
 
-    // Push registers
+    ; Push registers
     push r0
     push r2
     push r3
@@ -45,35 +45,35 @@ _scheduler_switch_threads:
     push r28
     push r29
 
-    // Save stack pointer
-    mov xh, r25  // param1 h
-    mov xl, r24  // param1 l
+    ; Save stack pointer
+    mov xh, r25  ; param1 h
+    mov xl, r24  ; param1 l
 
-    in r18, 0x3d  // SPL
+    in r18, 0x3d  ; SPL
     st X+, r18
-    in r18, 0x3e  // SPH
+    in r18, 0x3e  ; SPH
     st X, r18
 
-    // shift param2 to param1
+    ; shift param2 to param1
     mov r25, r23
     mov r24, r22
 
 
-// Switch to given thread
-// @param thread pointer to Thread struct
+; Switch to given thread
+; @param thread pointer to Thread struct
 .global _scheduler_resume_thread
 _scheduler_resume_thread:
 
-    // Restore stack pointer
-    mov xh, r25  // param1 h
-    mov xl, r24  // param1 l
+    ; Restore stack pointer
+    mov xh, r25  ; param1 h
+    mov xl, r24  ; param1 l
 
     ld r18, X+
-    out 0x3d, r18  // SPL
+    out 0x3d, r18  ; SPL
     ld r18, X
-    out 0x3e, r18  // SPH
+    out 0x3e, r18  ; SPH
 
-    // Pop registers
+    ; Pop registers
     pop r29
     pop r28
     pop r17

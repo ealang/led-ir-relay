@@ -115,7 +115,7 @@ static uint8_t get_free_subscriber_slot(InputManager *inst)
             return i;
         }
     }
-    return -1;
+    return 0xFF;
 }
 
 Gesture await_input(ButtonNumber button_num)
@@ -124,7 +124,7 @@ Gesture await_input(ButtonNumber button_num)
     pipe_init(&pipe);
 
     uint8_t slot = get_free_subscriber_slot(global_inst);
-    assert (slot != -1);
+    assert (slot != 0xFF);
 
     ATOMIC({
         global_inst->subscriber_button_num[slot] = button_num;
